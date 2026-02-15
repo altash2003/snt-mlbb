@@ -1,3 +1,5 @@
+// prisma/schema.prisma
+
 generator client {
   provider = "prisma-client-js"
 }
@@ -7,6 +9,7 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
+// Enums (Choices)
 enum Role {
   USER
   ADMIN
@@ -18,10 +21,12 @@ enum MatchStatus {
   COMPLETED
 }
 
+// Models (Tables)
+
 model User {
   id        String   @id @default(uuid())
   email     String   @unique
-  role      Role     @default(USER) // <--- CRITICAL FOR ADMIN
+  role      Role     @default(USER) 
   ign       String?
   mlbbId    String?
   teamId    String?
@@ -33,6 +38,8 @@ model Team {
   name         String
   captainId    String
   members      User[]
+  
+  // A team can join many tournaments
   tournaments  Tournament[] 
 }
 
@@ -40,7 +47,11 @@ model Tournament {
   id          String   @id @default(uuid())
   name        String
   status      String   @default("REGISTRATION")
+  
   matches     Match[]
+  
+  // This was missing before! It links Tournaments to Teams.
+  teams       Team[]   
 }
 
 model Match {
@@ -48,6 +59,7 @@ model Match {
   tournamentId  String
   tournament    Tournament  @relation(fields: [tournamentId], references: [id])
   round         Int
+  matchOrder    Int         @default(0) // Added default for safety
   
   teamAId       String?
   teamBId       String?
