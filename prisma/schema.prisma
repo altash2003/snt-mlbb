@@ -1,0 +1,59 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum Role {
+  USER
+  ADMIN
+}
+
+enum MatchStatus {
+  PENDING
+  DISPUTE
+  COMPLETED
+}
+
+model User {
+  id        String   @id @default(uuid())
+  email     String   @unique
+  role      Role     @default(USER) // <--- CRITICAL FOR ADMIN
+  ign       String?
+  mlbbId    String?
+  teamId    String?
+  team      Team?    @relation(fields: [teamId], references: [id])
+}
+
+model Team {
+  id           String       @id @default(uuid())
+  name         String
+  captainId    String
+  members      User[]
+  tournaments  Tournament[] 
+}
+
+model Tournament {
+  id          String   @id @default(uuid())
+  name        String
+  status      String   @default("REGISTRATION")
+  matches     Match[]
+}
+
+model Match {
+  id            String      @id @default(uuid())
+  tournamentId  String
+  tournament    Tournament  @relation(fields: [tournamentId], references: [id])
+  round         Int
+  
+  teamAId       String?
+  teamBId       String?
+  winnerId      String?
+  
+  // The "Proof of Win" System
+  proofImage    String?     
+  status        MatchStatus @default(PENDING)
+}
